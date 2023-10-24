@@ -57,6 +57,15 @@ dev-apply:
 	kustomize build zarf/k8s/dev/sales | kubectl apply -f -
 	kubectl wait pods --namespace=$(NAMESPACE) --selector app=$(APP) --timeout=120s --for=condition=Ready
 
+dev-restart:
+	kubectl rollout restart deployment $(APP) --namespace=$(NAMESPACE)
+
+# Here we push code changes and we are restarting the whole thing
+dev-update: all dev-load dev-restart
+
+# Here we push new configurations
+dev-update-apply: all dev-load dev-apply
+
 # ------------------------------------------------------------------------------
 
 dev-logs:
