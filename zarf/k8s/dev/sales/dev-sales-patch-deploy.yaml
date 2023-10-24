@@ -1,0 +1,29 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: sales
+  namespace: sales-system
+
+spec:
+  selector:
+    matchLabels:
+      app: sales
+  # This is an important setting usually it is more than one
+  # So we can run 3 instances but we are going for 1 since this is our dev environment 
+  replicas: 1 
+
+  strategy:
+    type: Recreate
+
+  template:
+    metadata:
+      labels:
+        app: sales
+
+    spec:
+      dnsPolicy: ClusterFirstWithHostNet
+      hostNetwork: true
+
+      containers:
+      - name: sales-api
+        image: service-image
