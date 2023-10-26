@@ -31,7 +31,7 @@ tidy:
 		go mod vendor
 
 run-local:
-		go run app\services\sales-api\main.go
+		go run app\services\sales-api\main.go | go run app/tooling/logfmt/main.go -service=$(SERVICE_NAME)
 
 run-local-help:
 		go run app\services\sales-api\main.go -h
@@ -72,7 +72,7 @@ dev-update-apply: all dev-load dev-apply
 # ------------------------------------------------------------------------------
 
 dev-logs:
-	kubectl logs --namespace=$(NAMESPACE) -l app=$(APP) --all-containers=true -f --tail=100 --max-log-requests=6
+	kubectl logs --namespace=$(NAMESPACE) -l app=$(APP) --all-containers=true -f --tail=100 
 
 dev-describe-deployment:
 	kubectl describe deployment --namespace=$(NAMESPACE) $(APP)

@@ -67,6 +67,18 @@ func run(log *zap.SugaredLogger) error {
 		return fmt.Errorf("parsing config: %w", err)
 	}
 
+	// -------------------------------------------------------------------------
+	// App Starting
+
+	log.Info("starting service ", "version ", build)
+	defer log.Info("shutdown complete")
+
+	out, err := conf.String(&cfg)
+	if err != nil {
+		return fmt.Errorf("generating config for output: %w", err)
+	}
+	log.Info("startup", "config", out)
+
 	// -----------------------------------------------------------------------
 	shutdown := make(chan os.Signal, 1)
 	// we are waiting for SIGINT which is a Ctrl+C or
