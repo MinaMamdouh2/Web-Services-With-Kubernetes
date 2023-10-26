@@ -33,6 +33,9 @@ tidy:
 run-local:
 		go run app\services\sales-api\main.go
 
+run-local-help:
+		go run app\services\sales-api\main.go -h
+
 # ==============================================================================
 dev-up-local:
 		kind create cluster \
