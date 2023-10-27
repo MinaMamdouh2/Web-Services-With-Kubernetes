@@ -9,7 +9,9 @@ import (
 	"time"
 
 	"errors"
+	"net/http"
 
+	"github.com/MinaMamdouh2/Web-Services-With-Kubernetes/buisness/web/v1/debug"
 	"github.com/MinaMamdouh2/Web-Services-With-Kubernetes/foundation/logger"
 	"github.com/ardanlabs/conf/v3"
 	"go.uber.org/zap"
@@ -78,6 +80,16 @@ func run(log *zap.SugaredLogger) error {
 		return fmt.Errorf("generating config for output: %w", err)
 	}
 	log.Info("startup", "config", out)
+
+	// -------------------------------------------------------------------------
+	// Start Debug Service
+	// This creats a go that blocks on a listening serve call on whatever the IP for the debug host is
+
+	go func() {
+		if err := http.ListenAndServe(cfg.Web.DebugHost, debug.Mux()); err != nil {
+			log.Error("shutdown", "status", "debug router closed", "host", cfg.Web.DebugHost, "msg", err)
+		}
+	}()
 
 	// -----------------------------------------------------------------------
 	shutdown := make(chan os.Signal, 1)

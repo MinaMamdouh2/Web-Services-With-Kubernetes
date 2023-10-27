@@ -31,10 +31,10 @@ tidy:
 		go mod vendor
 
 run-local:
-		go run app\services\sales-api\main.go | go run app/tooling/logfmt/main.go -service=$(SERVICE_NAME)
+		go run app/services/sales-api/main.go | go run app/tooling/logfmt/main.go -service=$(SERVICE_NAME)
 
 run-local-help:
-		go run app\services\sales-api\main.go -h
+		go run app/services/sales-api/main.go -h
 
 # ==============================================================================
 dev-up-local:
