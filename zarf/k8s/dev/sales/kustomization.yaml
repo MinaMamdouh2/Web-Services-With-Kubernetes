@@ -4,8 +4,9 @@ resources:
 # We bring here the base sales yaml first
 - ../../base/sales/
 patches:
-# We say here patch that with what in the deploy file
+# We say here patch that with what in the deploy & service files
 - path: ./dev-sales-patch-deploy.yaml
+- path: ./dev-sales-patch-service.yaml
 # Replace the service image that we defined in the base
 # With that name and tag
 images:
