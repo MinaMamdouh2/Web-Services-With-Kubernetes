@@ -80,7 +80,15 @@ dev-up-local:
 
 		kubectl wait --timeout=120s --namespace=local-path-storage --for=condition=Available deployment/local-path-provisioner
 
-dev-up: dev-up-local
+		kind load docker-image $(TELEPRESENCE) --name $(KIND_CLUSTER
+
+# Helm is responsible for starting the telepresence service inside the cluser
+# The second command is to start the agent service behind the scenes and create that tunnel for us
+dev-up: dev-up-local dev-telepresence
+
+dev-telepresence:
+		telepresence --context=kind-$(KIND_CLUSTER) helm install
+		telepresence --context=kind-$(KIND_CLUSTER) connect
 
 dev-down-local:
 		kind delete cluster --name $(KIND_CLUSTER)
