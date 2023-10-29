@@ -32,6 +32,7 @@ dev-docker:
 	docker pull $(TEMPO)
 	docker pull $(LOKI)
 	docker pull $(PROMTAIL)
+	docker pull $(TELEPRESENCE)
 
 # ==============================================================================
 # Define dependencies
@@ -46,6 +47,7 @@ PROMETHEUS      := prom/prometheus:v2.47.0
 TEMPO           := grafana/tempo:2.2.0
 LOKI            := grafana/loki:2.9.0
 PROMTAIL        := grafana/promtail:2.9.0
+TELEPRESENCE    := datawire/tel2:2.13.2
 
 KIND_CLUSTER    := ardan-starter-cluster
 NAMESPACE       := sales-system
@@ -80,13 +82,14 @@ dev-up-local:
 
 		kubectl wait --timeout=120s --namespace=local-path-storage --for=condition=Available deployment/local-path-provisioner
 
-		kind load docker-image $(TELEPRESENCE) --name $(KIND_CLUSTER
+		
 
 # Helm is responsible for starting the telepresence service inside the cluser
 # The second command is to start the agent service behind the scenes and create that tunnel for us
 dev-up: dev-up-local dev-telepresence
 
 dev-telepresence:
+		kind load docker-image $(TELEPRESENCE) --name $(KIND_CLUSTER)
 		telepresence --context=kind-$(KIND_CLUSTER) helm install
 		telepresence --context=kind-$(KIND_CLUSTER) connect
 
@@ -141,3 +144,8 @@ service:
 		--build-arg BUILD_REF=$(VERSION) \
 		--build-arg BUILD_DATE=`date -u +"%Y-%m-%dT%H:%M:%SZ"` \
 		.
+
+# ==============================================================================
+# Curling the service
+test-endpoint:
+	curl -il http://$(SERVICE_NAME).$(NAMESPACE).svc.cluster.local:4000/debug/pprof
