@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"os"
 	"os/signal"
@@ -27,14 +28,22 @@ func main() {
 	}
 	defer log.Sync()
 
-	if err := run(log); err != nil {
+	ctx := context.Background()
+
+	if err := run(log, ctx); err != nil {
 		log.Errorw("startup", "ERROR", err)
 		log.Sync()
 		os.Exit(1)
 	}
 }
 
-func run(log *zap.SugaredLogger) error {
+/*
+	//TODO:
+	Need to figure out timeouts for http service.
+	Add Category field and type to product.
+*/
+
+func run(log *zap.SugaredLogger, ctx context.Context) error {
 	// -----------------------------------------------------------------------
 	// GOMAXPROCS
 	log.Infow("startup", "GOMAXPROCS", runtime.GOMAXPROCS(0), "BUILD-", build)
@@ -92,15 +101,48 @@ func run(log *zap.SugaredLogger) error {
 	}()
 
 	// -----------------------------------------------------------------------
+	// Start API Service
+	log.Infow("startup", "status", "Initializing V1 API support")
+
+	api := http.Server{
+		Addr:         cfg.Web.APIHost,
+		Handler:      nil,
+		ReadTimeout:  cfg.Web.ReadTimeout,
+		WriteTimeout: cfg.Web.WriteTimeout,
+		IdleTimeout:  cfg.Web.IdleTimeout,
+		ErrorLog:     zap.NewStdLog(log.Desugar()),
+	}
+
+	serverErrors := make(chan error, 1)
+
+	go func() {
+		log.Infow("startup", "status", "api router started", "host", api.Addr)
+		serverErrors <- api.ListenAndServe()
+	}()
+
+	// -----------------------------------------------------------------------
 	shutdown := make(chan os.Signal, 1)
 	// we are waiting for SIGINT which is a Ctrl+C or
 	// a SIGTERM which what will get back from Kubernetes
 	signal.Notify(shutdown, syscall.SIGINT, syscall.SIGTERM)
 
-	sig := <-shutdown
+	select {
+	case err := <-serverErrors:
+		return fmt.Errorf("server error: %w", err)
 
-	log.Infow("shutdown", "status", "shutdown started", "singal", sig)
-	defer log.Infow("shutdown", "status", "shutdown complete", "signal", sig)
+	case sig := <-shutdown:
+		log.Infow("shutdown", "status", "shutdown started", "signal", sig)
+		defer log.Infow("shutdown", "status", "shutdown complete", "signal", sig)
+
+		ctx, cancel := context.WithTimeout(ctx, cfg.Web.ShutdownTimeout)
+		defer cancel()
+
+		if err := api.Shutdown(ctx); err != nil {
+			// If we timeo
+			api.Close()
+			return fmt.Errorf("could not stop server gracefully: %w", err)
+		}
+	}
 
 	return nil
 }

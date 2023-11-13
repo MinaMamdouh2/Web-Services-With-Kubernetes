@@ -70,7 +70,10 @@ run-local-help:
 		go run app/services/sales-api/main.go -h
 
 
-metrics-view-sc:
+metrics-view:
+	expvarmon -ports="$(SERVICE_NAME).$(NAMESPACE).svc.cluster.local:4000" -vars="build,requests,goroutines,errors,panics,mem:memstats.Alloc"
+
+metrics-view-local:
 	expvarmon -ports="localhost:4000" -vars="build,requests,goroutines,errors,panics,mem:memstats.Alloc"
 
 # ==============================================================================
@@ -81,7 +84,7 @@ dev-up-local:
 			--config zarf/k8s/dev/kind-config.yaml
 
 		kubectl wait --timeout=120s --namespace=local-path-storage --for=condition=Available deployment/local-path-provisioner
-
+		kind load docker-image $(TELEPRESENCE) --name $(KIND_CLUSTER)
 		
 
 # Helm is responsible for starting the telepresence service inside the cluser
@@ -89,7 +92,7 @@ dev-up-local:
 dev-up: dev-up-local dev-telepresence
 
 dev-telepresence:
-		kind load docker-image $(TELEPRESENCE) --name $(KIND_CLUSTER)
+		
 		telepresence --context=kind-$(KIND_CLUSTER) helm install
 		telepresence --context=kind-$(KIND_CLUSTER) connect
 
@@ -149,3 +152,6 @@ service:
 # Curling the service
 test-endpoint:
 	curl -il http://$(SERVICE_NAME).$(NAMESPACE).svc.cluster.local:4000/debug/pprof
+
+test-endpoint-local:
+	curl -il http://localhost:4000/debug/pprof
