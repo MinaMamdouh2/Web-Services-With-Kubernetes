@@ -12,6 +12,7 @@ import (
 	"errors"
 	"net/http"
 
+	"github.com/MinaMamdouh2/Web-Services-With-Kubernetes/app/services/sales-api/handlers"
 	"github.com/MinaMamdouh2/Web-Services-With-Kubernetes/buisness/web/v1/debug"
 	"github.com/MinaMamdouh2/Web-Services-With-Kubernetes/foundation/logger"
 	"github.com/ardanlabs/conf/v3"
@@ -104,24 +105,29 @@ func run(log *zap.SugaredLogger, ctx context.Context) error {
 	// Start API Service
 	log.Infow("startup", "status", "Initializing V1 API support")
 
+	serverErrors := make(chan error, 1)
+
+	// -----------------------------------------------------------------------
+	shutdown := make(chan os.Signal, 1)
+
+	apiMux := handlers.APIMux(handlers.APIMuxConfig{
+		Shutdown: shutdown,
+		Log:      log,
+	})
+
 	api := http.Server{
 		Addr:         cfg.Web.APIHost,
-		Handler:      nil,
+		Handler:      apiMux,
 		ReadTimeout:  cfg.Web.ReadTimeout,
 		WriteTimeout: cfg.Web.WriteTimeout,
 		IdleTimeout:  cfg.Web.IdleTimeout,
 		ErrorLog:     zap.NewStdLog(log.Desugar()),
 	}
 
-	serverErrors := make(chan error, 1)
-
 	go func() {
 		log.Infow("startup", "status", "api router started", "host", api.Addr)
 		serverErrors <- api.ListenAndServe()
 	}()
-
-	// -----------------------------------------------------------------------
-	shutdown := make(chan os.Signal, 1)
 	// we are waiting for SIGINT which is a Ctrl+C or
 	// a SIGTERM which what will get back from Kubernetes
 	signal.Notify(shutdown, syscall.SIGINT, syscall.SIGTERM)
