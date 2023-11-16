@@ -5,6 +5,7 @@ import (
 	"os"
 
 	"github.com/MinaMamdouh2/Web-Services-With-Kubernetes/app/services/sales-api/handlers/v1/testgrp"
+	"github.com/MinaMamdouh2/Web-Services-With-Kubernetes/buisness/web/v1/mid"
 	"github.com/MinaMamdouh2/Web-Services-With-Kubernetes/foundation/web"
 	"go.uber.org/zap"
 )
@@ -17,7 +18,7 @@ type APIMuxConfig struct {
 
 // APIMux constructs a http.Handler with all application routes defined.
 func APIMux(cfg APIMuxConfig) *web.App {
-	app := web.NewApp(cfg.Shutdown)
+	app := web.NewApp(cfg.Shutdown, mid.Logger(cfg.Log))
 
 	app.Handle(http.MethodGet, "/test", testgrp.Test)
 	return app
