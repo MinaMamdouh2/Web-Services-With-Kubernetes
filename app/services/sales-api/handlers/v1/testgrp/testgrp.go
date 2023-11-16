@@ -2,8 +2,9 @@ package testgrp
 
 import (
 	"context"
-	"encoding/json"
 	"net/http"
+
+	"github.com/MinaMamdouh2/Web-Services-With-Kubernetes/foundation/web"
 )
 
 // Test is our example route
@@ -17,5 +18,6 @@ func Test(ctx context.Context, w http.ResponseWriter, r *http.Request) error {
 	}{
 		Status: "OK",
 	}
-	return json.NewEncoder(w).Encode(status)
+	// This should be used for the OK responses only.
+	return web.Respond(ctx, w, status, http.StatusOK)
 }
