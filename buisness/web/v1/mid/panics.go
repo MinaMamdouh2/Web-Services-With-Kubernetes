@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"runtime/debug"
 
+	"github.com/MinaMamdouh2/Web-Services-With-Kubernetes/buisness/web/metrics"
 	"github.com/MinaMamdouh2/Web-Services-With-Kubernetes/foundation/web"
 )
 
@@ -24,6 +25,7 @@ func Panics() web.Middleware {
 					// This gives us the stack trace of the goroutine which panicked.
 					trace := debug.Stack()
 					err = fmt.Errorf("PANIC [%v] TRACE[%s]", rec, string(trace))
+					metrics.AddPanics(ctx)
 				}
 			}()
 
