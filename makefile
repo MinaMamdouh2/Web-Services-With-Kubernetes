@@ -155,3 +155,12 @@ test-endpoint:
 
 test-endpoint-local:
 	curl -il http://localhost:4000/debug/pprof
+
+#===============================================================================
+# RSA Keys
+# 	To generate a private/public key PEM file.
+# 	$ openssl genpkey -algorithm RSA -out private.pem -pkeyopt rsa_keygen_bits:2048
+# 	$ openssl rsa -pubout -in private.pem -out public.pem
+
+run-scratch:
+	go run app/scratch/main.go
