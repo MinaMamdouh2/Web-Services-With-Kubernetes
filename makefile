@@ -2,6 +2,11 @@
 SHELL_PATH = /bin/ash
 SHELL = $(if $(wildcard $(SHELL_PATH)), /bin/ash, /bin/bash)
 
+# OPA Playground
+# 	https://play.openpolicyagent.org/
+# 	https://academy.styra.com/
+# 	https://www.openpolicyagent.org/docs/latest/policy-reference/
+
 # ==============================================================================
 # Install dependencies
 
