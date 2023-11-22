@@ -1,16 +1,21 @@
 package main
 
 import (
+	"bytes"
+	"context"
 	"crypto/rand"
 	"crypto/rsa"
 	"crypto/x509"
+	_ "embed"
 	"encoding/pem"
+	"errors"
 	"fmt"
 	"log"
 	"os"
 	"time"
 
 	"github.com/golang-jwt/jwt/v4"
+	"github.com/open-policy-agent/opa/rego"
 )
 
 func main() {
@@ -79,8 +84,9 @@ func genToken() error {
 		Bytes: asn1Bytes,
 	}
 
+	var b bytes.Buffer
 	// Write the private key to the private key file.
-	if err := pem.Encode(os.Stdout, &publickBlock); err != nil {
+	if err := pem.Encode(&b, &publickBlock); err != nil {
 		return fmt.Errorf("encoding to private file: %w", err)
 	}
 
@@ -104,8 +110,14 @@ func genToken() error {
 	}
 
 	fmt.Println("TOKEN VALID")
-	fmt.Printf("%#v\n", clm)
 
+	// ==============================================
+	if err := opaPolicyEvaluationAuthen(context.Background(), b.String(), str, clm.Issuer); err != nil {
+		return fmt.Errorf("OPS authentication failed: %w", err)
+	}
+
+	fmt.Println("TOKEN VALID OPA")
+	fmt.Printf("\n%#v\n", clm)
 	return nil
 }
 
@@ -161,6 +173,56 @@ func genKey() error {
 	}
 
 	fmt.Println("private and public key files generated")
+
+	return nil
+}
+
+// Core OPA policies.
+// Here we are asking the go compiler when you build that file
+// I want you to take the contents and embed it in this variable
+// This is a way to do it without any file opennings
+var (
+
+	//go:embed rego/authentication.rego
+	opaAuthentication string
+
+	//go:embed rego/authorization.rego
+	opaAuthorization string
+)
+
+// opaPolicyEvaluation asks opa to evaulate the token against the specified token
+// policy and public key.
+func opaPolicyEvaluationAuthen(ctx context.Context, pem string, tokenString string, issuer string) error {
+	const rule string = "auth"
+	const opaPackage string = "ardan.rego"
+
+	query := fmt.Sprintf("x = data.%s.%s", opaPackage, rule)
+	q, err := rego.New(
+		rego.Query(query),
+		rego.Module("policy.rego", opaAuthentication),
+	).PrepareForEval(ctx)
+	if err != nil {
+		return err
+	}
+
+	input := map[string]any{
+		"Key":   pem,
+		"Token": tokenString,
+		"ISS":   issuer,
+	}
+	results, err := q.Eval(ctx, rego.EvalInput(input))
+	if err != nil {
+		return fmt.Errorf("query: %w", err)
+	}
+
+	if len(results) == 0 {
+		return errors.New("no results")
+	}
+
+	result, ok := results[0].Bindings["x"].(bool)
+	if !ok || !result {
+		return fmt.Errorf("bindings results[%v] ok[%v]", results, ok)
+	}
 
 	return nil
 }

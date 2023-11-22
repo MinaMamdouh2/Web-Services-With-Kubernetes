@@ -1,4 +1,4 @@
-package rego
+package ardan.rego
 
 # Define a variable auth and set it to false
 default auth = false
