@@ -13,7 +13,9 @@ import (
 	"net/http"
 
 	"github.com/MinaMamdouh2/Web-Services-With-Kubernetes/app/services/sales-api/handlers"
+	"github.com/MinaMamdouh2/Web-Services-With-Kubernetes/buisness/web/auth"
 	"github.com/MinaMamdouh2/Web-Services-With-Kubernetes/buisness/web/v1/debug"
+	"github.com/MinaMamdouh2/Web-Services-With-Kubernetes/foundation/keystore"
 	"github.com/MinaMamdouh2/Web-Services-With-Kubernetes/foundation/logger"
 	"github.com/ardanlabs/conf/v3"
 	"go.uber.org/zap"
@@ -62,6 +64,11 @@ func run(log *zap.SugaredLogger, ctx context.Context) error {
 			APIHost         string        `conf:"default:0.0.0.0:3000,mask"` //mask print it as xxxxxx
 			DebugHost       string        `conf:"default:0.0.0.0:4000"`
 		}
+		Auth struct {
+			KeysFolder string `conf:"default:zarf/keys/"`
+			ActiveKID  string `conf:"default:private"`
+			Issuer     string `conf:"default:service project"`
+		}
 	}{
 		Version: conf.Version{
 			Build: build,
@@ -89,7 +96,23 @@ func run(log *zap.SugaredLogger, ctx context.Context) error {
 	if err != nil {
 		return fmt.Errorf("generating config for output: %w", err)
 	}
+
 	log.Info("startup", "config", out)
+
+	// Simple keystore.
+	ks, err := keystore.NewFS(os.DirFS(cfg.Auth.KeysFolder))
+	if err != nil {
+		return fmt.Errorf("reading keys: %w", err)
+	}
+	authCfg := auth.Config{
+		Log:       log,
+		KeyLookup: ks,
+	}
+
+	auth, err := auth.New(authCfg)
+	if err != nil {
+		return fmt.Errorf("constructing auth: %w", err)
+	}
 
 	// -------------------------------------------------------------------------
 	// Start Debug Service
@@ -113,6 +136,7 @@ func run(log *zap.SugaredLogger, ctx context.Context) error {
 	apiMux := handlers.APIMux(handlers.APIMuxConfig{
 		Shutdown: shutdown,
 		Log:      log,
+		Auth:     auth,
 	})
 
 	api := http.Server{

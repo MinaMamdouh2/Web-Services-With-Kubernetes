@@ -19,7 +19,7 @@ import (
 )
 
 func main() {
-	if err := genToken(); err != nil {
+	if err := genKey(); err != nil {
 		log.Fatalln(err)
 	}
 }

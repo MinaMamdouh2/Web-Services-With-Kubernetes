@@ -4,6 +4,7 @@ import (
 	"context"
 	"net/http"
 
+	"github.com/MinaMamdouh2/Web-Services-With-Kubernetes/buisness/web/auth"
 	v1 "github.com/MinaMamdouh2/Web-Services-With-Kubernetes/buisness/web/v1"
 	"github.com/MinaMamdouh2/Web-Services-With-Kubernetes/foundation/web"
 	"go.uber.org/zap"
@@ -34,6 +35,12 @@ func Errors(log *zap.SugaredLogger) web.Middleware {
 						Error: reqErr.Error(),
 					}
 					status = reqErr.Status
+				// Is it an auth error
+				case auth.IsAuthError(err):
+					er = v1.ErrorResponse{
+						Error: http.StatusText(http.StatusUnauthorized),
+					}
+					status = http.StatusUnauthorized
 				// If it is not a trusted error
 				default:
 					er = v1.ErrorResponse{
