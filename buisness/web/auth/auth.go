@@ -95,6 +95,7 @@ func (a *Auth) GenerateToken(kid string, claims Claims) (string, error) {
 
 // Authenticate processes the token to validate the sender's token is valid.
 func (a *Auth) Authenticate(ctx context.Context, bearerToken string) (Claims, error) {
+
 	parts := strings.Split(bearerToken, " ")
 	if len(parts) != 2 || parts[0] != "Bearer" {
 		return Claims{}, errors.New("expected authorization header format: Bearer <token>")
@@ -195,10 +196,9 @@ func (a *Auth) publicKeyLookup(kid string) (string, error) {
 // policy and public key.
 func (a *Auth) opaPolicyEvaluation(ctx context.Context, opaPolicy string, rule string, input any) error {
 	query := fmt.Sprintf("x = data.%s.%s", opaPackage, rule)
-
 	q, err := rego.New(
 		rego.Query(query),
-		rego.Module("policy.rego", opaPolicy),
+		rego.Module("rego", opaPolicy),
 	).PrepareForEval(ctx)
 	if err != nil {
 		return err

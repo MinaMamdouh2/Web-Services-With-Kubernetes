@@ -104,11 +104,13 @@ func run(log *zap.SugaredLogger, ctx context.Context) error {
 	if err != nil {
 		return fmt.Errorf("reading keys: %w", err)
 	}
+
 	authCfg := auth.Config{
 		Log:       log,
 		KeyLookup: ks,
+		Issuer:    cfg.Auth.Issuer,
 	}
-
+	fmt.Println(authCfg)
 	auth, err := auth.New(authCfg)
 	if err != nil {
 		return fmt.Errorf("constructing auth: %w", err)
@@ -119,7 +121,7 @@ func run(log *zap.SugaredLogger, ctx context.Context) error {
 	// This creats a go that blocks on a listening serve call on whatever the IP for the debug host is
 
 	go func() {
-		if err := http.ListenAndServe(cfg.Web.DebugHost, debug.Mux()); err != nil {
+		if err := http.ListenAndServe(cfg.Web.DebugHost, debug.Mux(build, log)); err != nil {
 			log.Error("shutdown", "status", "debug router closed", "host", cfg.Web.DebugHost, "msg", err)
 		}
 	}()

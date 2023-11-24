@@ -10,6 +10,7 @@ import (
 	"encoding/pem"
 	"errors"
 	"fmt"
+	"io"
 	"log"
 	"os"
 	"time"
@@ -19,7 +20,7 @@ import (
 )
 
 func main() {
-	if err := genKey(); err != nil {
+	if err := genToken(); err != nil {
 		log.Fatalln(err)
 	}
 }
@@ -52,11 +53,28 @@ func genToken() error {
 	method := jwt.GetSigningMethod(jwt.SigningMethodRS256.Name)
 
 	token := jwt.NewWithClaims(method, claims)
+	token.Header["kid"] = "private"
 
 	// Generate a new private key
-	privateKey, err := rsa.GenerateKey(rand.Reader, 2048)
+	// privateKey, err := rsa.GenerateKey(rand.Reader, 2048)
+	// if err != nil {
+	// 	return fmt.Errorf("generating key: %w", err)
+	// }
+
+	file, err := os.Open("zarf/keys/private.pem")
 	if err != nil {
-		return fmt.Errorf("generating key: %w", err)
+		return fmt.Errorf("Open private.pem file: %w", err)
+	}
+	defer file.Close()
+
+	pemData, err := io.ReadAll(io.LimitReader(file, 1024*1024))
+	if err != nil {
+		return fmt.Errorf("Reading auth private key: %w", err)
+	}
+
+	privateKey, err := jwt.ParseRSAPrivateKeyFromPEM(pemData)
+	if err != nil {
+		return fmt.Errorf("Parsing auth private key: %w", err)
 	}
 
 	str, err := token.SignedString(privateKey)

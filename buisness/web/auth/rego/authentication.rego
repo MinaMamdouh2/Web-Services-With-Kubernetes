@@ -13,7 +13,7 @@ jwt_valid := valid {
 	[valid, header, payload] := verify_jwt
 }
 
-# This has a fuinction that is part of rego 'decode_verify'
+# This has a function that is part of rego 'decode_verify'
 # and you can pass inputs as token, public key & iss information
 # then it will return verify_jwt and we gonna divide it into 3 parts
 verify_jwt := io.jwt.decode_verify(input.Token, {
