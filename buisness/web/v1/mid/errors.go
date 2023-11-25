@@ -4,6 +4,7 @@ import (
 	"context"
 	"net/http"
 
+	"github.com/MinaMamdouh2/Web-Services-With-Kubernetes/buisness/sys/validate"
 	"github.com/MinaMamdouh2/Web-Services-With-Kubernetes/buisness/web/auth"
 	v1 "github.com/MinaMamdouh2/Web-Services-With-Kubernetes/buisness/web/v1"
 	"github.com/MinaMamdouh2/Web-Services-With-Kubernetes/foundation/web"
@@ -35,6 +36,14 @@ func Errors(log *zap.SugaredLogger) web.Middleware {
 						Error: reqErr.Error(),
 					}
 					status = reqErr.Status
+				// Is this a validation error
+				case validate.IsFieldErrors(err):
+					fieldErrors := validate.GetFieldErrors(err)
+					er = v1.ErrorResponse{
+						Error:  "data validation error",
+						Fields: fieldErrors.Fields(),
+					}
+					status = http.StatusBadRequest
 				// Is it an auth error
 				case auth.IsAuthError(err):
 					er = v1.ErrorResponse{
