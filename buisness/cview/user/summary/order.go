@@ -1,4 +1,4 @@
-package usersummary
+package summary
 
 import "github.com/MinaMamdouh2/Web-Services-With-Kubernetes/buisness/data/order"
 
