@@ -9,14 +9,16 @@ import (
 
 // QueryFilter holds the available fields a query can be filtered on.
 type QueryFilter struct {
-	ID               *uuid.UUID    `validate:"omitempty,uuid4"`
+	ID               *uuid.UUID    `validate:"omitempty"`
 	Name             *string       `validate:"omitempty,min=3"`
-	Email            *mail.Address `validate:"omitempty,email"`
+	Email            *mail.Address `validate:"omitempty"`
 	StartCreatedDate *time.Time    `validate:"omitempty"`
 	EndCreatedDate   *time.Time    `validate:"omitempty"`
 }
 
 // Validate checks the data in the model is considered clean.
+// We are not going to recreate the QueryFilter in the App layer
+// so we had to provide the validate
 func (qf *QueryFilter) Validate() error {
 	// if err := validate.Check(qf); err != nil {
 	// 	return fmt.Errorf("validate: %w", err)
