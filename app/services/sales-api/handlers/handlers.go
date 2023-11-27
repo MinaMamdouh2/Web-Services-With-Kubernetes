@@ -5,6 +5,9 @@ import (
 	"os"
 
 	"github.com/MinaMamdouh2/Web-Services-With-Kubernetes/app/services/sales-api/handlers/v1/testgrp"
+	"github.com/MinaMamdouh2/Web-Services-With-Kubernetes/app/services/sales-api/handlers/v1/usrgrp"
+	"github.com/MinaMamdouh2/Web-Services-With-Kubernetes/buisness/core/user"
+	"github.com/MinaMamdouh2/Web-Services-With-Kubernetes/buisness/core/user/stores/userdb"
 	"github.com/MinaMamdouh2/Web-Services-With-Kubernetes/buisness/web/auth"
 	"github.com/MinaMamdouh2/Web-Services-With-Kubernetes/buisness/web/v1/mid"
 	"github.com/MinaMamdouh2/Web-Services-With-Kubernetes/foundation/web"
@@ -27,5 +30,9 @@ func APIMux(cfg APIMuxConfig) *web.App {
 	app.Handle(http.MethodGet, "/test", testgrp.Test)
 	app.Handle(http.MethodGet, "/test/auth", testgrp.Test, mid.Authenticate(cfg.Auth), mid.Authorize(cfg.Auth, auth.RuleAdminOnly))
 
+	// ==============================================================================
+	usrCore := user.NewCore(userdb.NewStore(cfg.Log, cfg.DB))
+	ugh := usrgrp.New(usrCore)
+	app.Handle(http.MethodGet, "/users", ugh.Query)
 	return app
 }
