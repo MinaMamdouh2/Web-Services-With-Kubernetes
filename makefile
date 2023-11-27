@@ -185,4 +185,9 @@ pgcli-local:
 	pgcli postgresql://postgres:postgres@localhost
 
 pgcli:
-	pgcli postgresql://postgres:postgres@database-service.${NAMESPACE}.svc.cluser.local
+	pgcli postgresql://postgres:postgres@database-service.${NAMESPACE}.svc.cluster.local
+
+# ===================================================================================
+# Migration
+migrate:
+	go run app/tooling/admin/main.go
