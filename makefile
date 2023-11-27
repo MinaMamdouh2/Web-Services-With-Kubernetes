@@ -138,6 +138,10 @@ dev-describe-deployment:
 dev-describe-sales:
 	kubectl describe pod --namespace=$(NAMESPACE) -l app=$(APP)	
 
+dev-logs-init:
+	kubectl logs --namespace=$(NAMESPACE) -l app=$(APP) -f --tail=100 -c init-migrate
+
+
 # ------------------------------------------------------------------------------
 dev-status:
 		kubectl get nodes -o wide
