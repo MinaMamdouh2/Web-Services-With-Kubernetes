@@ -175,6 +175,11 @@ run-scratch:
 	go run app/scratch/main.go
 
 # ==============================================================================
+# Loading postgres
+load-postgres:
+	kind load docker-image $(POSTGRES) --name $(KIND_CLUSTER)
+
+# ==============================================================================
 # Administration
 pgcli-local:
 	pgcli postgresql://postgres:postgres@localhost

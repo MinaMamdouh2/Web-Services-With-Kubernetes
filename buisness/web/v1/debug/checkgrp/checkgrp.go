@@ -2,10 +2,14 @@
 package checkgrp
 
 import (
+	"context"
 	"net/http"
 	"os"
+	"time"
 
+	database "github.com/MinaMamdouh2/Web-Services-With-Kubernetes/buisness/sys/database/pgx"
 	"github.com/MinaMamdouh2/Web-Services-With-Kubernetes/foundation/web"
+	"github.com/jmoiron/sqlx"
 	"go.uber.org/zap"
 )
 
@@ -13,6 +17,7 @@ import (
 type Handlers struct {
 	Build string
 	Log   *zap.SugaredLogger
+	DB    *sqlx.DB
 }
 
 // Readiness checks if the database is ready and if not will return a 500 status.
@@ -22,12 +27,19 @@ type Handlers struct {
 // If you send me a request I should be able to process it no problem
 // Part of us saying that we are ready is that we can talk to the DB
 func (h Handlers) Readiness(w http.ResponseWriter, r *http.Request) {
-	statusCode := http.StatusOK
+	ctx, cancel := context.WithTimeout(r.Context(), time.Second)
+	defer cancel()
 
+	statusCode := http.StatusOK
+	status := "ok"
+	if err := database.StatusCheck(ctx, h.DB); err != nil {
+		status = "db not ready"
+		statusCode = http.StatusInternalServerError
+	}
 	data := struct {
 		Status string `json:"status"`
 	}{
-		Status: "OK",
+		Status: status,
 	}
 
 	if err := web.Respond(r.Context(), w, data, statusCode); err != nil {

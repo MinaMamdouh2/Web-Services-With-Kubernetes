@@ -8,6 +8,7 @@ import (
 	"github.com/MinaMamdouh2/Web-Services-With-Kubernetes/buisness/web/auth"
 	"github.com/MinaMamdouh2/Web-Services-With-Kubernetes/buisness/web/v1/mid"
 	"github.com/MinaMamdouh2/Web-Services-With-Kubernetes/foundation/web"
+	"github.com/jmoiron/sqlx"
 	"go.uber.org/zap"
 )
 
@@ -16,6 +17,7 @@ type APIMuxConfig struct {
 	Shutdown chan os.Signal
 	Log      *zap.SugaredLogger
 	Auth     *auth.Auth
+	DB       *sqlx.DB
 }
 
 // APIMux constructs a http.Handler with all application routes defined.
@@ -24,5 +26,6 @@ func APIMux(cfg APIMuxConfig) *web.App {
 
 	app.Handle(http.MethodGet, "/test", testgrp.Test)
 	app.Handle(http.MethodGet, "/test/auth", testgrp.Test, mid.Authenticate(cfg.Auth), mid.Authorize(cfg.Auth, auth.RuleAdminOnly))
+
 	return app
 }
