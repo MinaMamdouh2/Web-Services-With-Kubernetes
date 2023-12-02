@@ -30,7 +30,7 @@ func StartDB() (*docker.Container, error) {
 	// It is ok for testing to hard code some stuff
 	image := "postgres:15.4"
 	port := "5432"
-	args := []string{"-e", "POSTGRES_PASSWORD=postgres", "-c", "log_statement=all"}
+	args := []string{"-e", "POSTGRES_PASSWORD=postgres"}
 
 	c, err := docker.StartContainer(image, port, args...)
 	if err != nil {

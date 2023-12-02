@@ -6,7 +6,7 @@ import "errors"
 // ErrorResponse is the form used for API responses from failures in the API
 type ErrorResponse struct {
 	Error  string            `json:"error"`
-	Fields map[string]string `json:"fields,omitempty`
+	Fields map[string]string `json:"fields,omitempty"`
 }
 
 // RequestError is used to pass an error during the request through the
