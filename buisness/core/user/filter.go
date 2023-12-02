@@ -1,9 +1,11 @@
 package user
 
 import (
+	"fmt"
 	"net/mail"
 	"time"
 
+	"github.com/MinaMamdouh2/Web-Services-With-Kubernetes/buisness/sys/validate"
 	"github.com/google/uuid"
 )
 
@@ -20,9 +22,9 @@ type QueryFilter struct {
 // We are not going to recreate the QueryFilter in the App layer
 // so we had to provide the validate
 func (qf *QueryFilter) Validate() error {
-	// if err := validate.Check(qf); err != nil {
-	// 	return fmt.Errorf("validate: %w", err)
-	// }
+	if err := validate.Check(qf); err != nil {
+		return fmt.Errorf("validate: %w", err)
+	}
 	return nil
 }
 
