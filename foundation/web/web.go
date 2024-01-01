@@ -59,15 +59,14 @@ func (a *App) Handle(method string, path string, handler Handler, mw ...Middlewa
 		// If we get an error here, either the error handler has returned it
 		// or some other call between the handler and us has failed.
 		if err := handler(ctx, w, r); err != nil {
-			if err := handler(ctx, w, r); err != nil {
-				// We use this function to validate if we need to shutdown
-				// our application because of an integrity issue.
-				if validateShutdown(err) {
-					a.SignalShutdown()
-					return
-				}
+			// We use this function to validate if we need to shutdown
+			// our application because of an integrity issue.
+			if validateShutdown(err) {
+				a.SignalShutdown()
+				return
 			}
 		}
+
 	}
 
 	a.ContextMux.Handle(method, path, h)

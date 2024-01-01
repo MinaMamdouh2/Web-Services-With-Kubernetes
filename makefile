@@ -199,7 +199,8 @@ migrate:
 
 # ==============================================================================
 # Running tests within the local computer
-
+# Go's ecosystem caches tests so if the code didn't change, it doesn't have to run them again
+# So count=1 will cause the tests to run again even if they are cached 
 test-race:
 	CGO_ENABLED=1 go test -race -count=1 ./...
 
